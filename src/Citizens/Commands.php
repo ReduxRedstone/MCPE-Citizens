@@ -71,13 +71,11 @@ class Commands implements CommandExecutor {
 
     public function getNPC($id) {
         $n=0;
-        foreach ($this->plugin->npcs as $npc) {
+        while ($npc = current($this->plugin->npcs)) {
             if ($npc["npc_id"] == $id) {
-                $this->plugin->getLogger()->info("FOUND");
-                return $n;
+                return key($this->plugin->npcs);
             }
-            $this->plugin->getLogger()->info($npc["npc_id"]);
-            $n++;
+            next($this->plugin->npcs);
         }
     }
 }
