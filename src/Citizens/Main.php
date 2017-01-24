@@ -126,15 +126,15 @@ class Main extends PluginBase implements Listener {
 
         $uuid = $this->guidv4(random_bytes(16));
         $eid = rand(0, 9999999);
-        $id = count($this->npcs);
-        $id = $id++;
+        end($this->npcs);
+        $id = key($this->npcs);
+        $id++;
         $data = array();
         $data["pos"] = array("x"=>$player->x,"y"=>$player->y,"z"=>$player->z,"pitch"=>$player->pitch,"yaw"=>$player->yaw);
         $data["uuid"] = $uuid;
         $data["eid"] = $eid;
         $data["name"] = $name;
         $data["npc_id"] = $id;
-        //$data["commands"] = array();
 
         $this->config->addNpc($data);
         $this->npcs = json_decode(file_get_contents("./plugins/Citizens/npcs/_all.json"), true);
