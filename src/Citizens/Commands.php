@@ -70,7 +70,6 @@ class Commands implements CommandExecutor {
     }
 
     public function getNPC($id) {
-        $n=0;
         while ($npc = current($this->plugin->npcs)) {
             if ($npc["npc_id"] == $id) {
                 return key($this->plugin->npcs);

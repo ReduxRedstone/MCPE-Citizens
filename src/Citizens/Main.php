@@ -51,6 +51,7 @@ class Main extends PluginBase implements Listener {
 
     public function onJoin(PlayerJoinEvent $event) {
         $player = $event->getPlayer();
+        $this->getLogger()->info(print_r($this->npcs, true));
         if ($player instanceof Player and !empty($this->npcs)) {
             foreach ($this->npcs as $npc) {
                 $this->spawnNPC($player, $npc);
@@ -59,14 +60,27 @@ class Main extends PluginBase implements Listener {
     }
 
     public function onPacketReceived(DataPacketReceiveEvent $event) {
-        // Detects if a player clicked an NPC working on an emit system so plugins can hook into this click
+        // Detects if a player clicked an NPC. Working on an emit system so plugins can hook into this click
         $packet = $event->getPacket();
         if (isset($packet->action)) {
             $action = $packet->action;
         }
         if ($packet instanceof InteractPacket and isset($action) and $action === InteractPacket::ACTION_LEFT_CLICK) {
-            if (array_search($packet->target, array_column($this->npcs, 'eid'))) {
-               $this->getLogger()->info("Clicked an NPC");
+            while ($npc = current($this->npcs)) {
+                if ($npc["eid"] == $packet->target) {
+
+                    $player = $event->getPlayer();
+                    $entity = $packet->target;
+                    $npcKey = key($this->npcs);
+
+                    $player->sendMessage("You have clicked NPC ".$this->npcs[$npcKey]["name"]);
+
+                    $emit = array("player"=>$player,"npc_eid"=>$entity,"npc_key"=>$npcKey,"npc"=>$this->npcs[$npcKey]);
+                    $this->getLogger()->info(print_r($emit, true));
+
+                    return;
+                }
+                next($this->npcs);
             }
         }
     }
@@ -126,9 +140,13 @@ class Main extends PluginBase implements Listener {
 
         $uuid = $this->guidv4(random_bytes(16));
         $eid = rand(0, 9999999);
-        end($this->npcs);
-        $id = key($this->npcs);
-        $id++;
+        if (empty($this->npcs)) {
+            $id = 0;
+        } else {
+            end($this->npcs);
+            $id = key($this->npcs);
+            $id++;
+        }
         $data = array();
         $data["pos"] = array("x"=>$player->x,"y"=>$player->y,"z"=>$player->z,"pitch"=>$player->pitch,"yaw"=>$player->yaw);
         $data["uuid"] = $uuid;
