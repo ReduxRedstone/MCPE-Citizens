@@ -13,6 +13,7 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 
 use pocketmine\network\protocol\AddPlayerPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\InteractPacket;
 
 use pocketmine\entity\Entity;
@@ -33,7 +34,7 @@ class Main extends PluginBase implements Listener {
     }
 
     public function onEnable() {
-        $this->config = new Config();
+        $this->config = new Config($this);
         $this->config->load();
 
         $this->npcs = json_decode(file_get_contents("./plugins/Citizens/npcs/_all.json"), true);
@@ -100,17 +101,39 @@ class Main extends PluginBase implements Listener {
         $player->dataPacket($packet);
     }
 
+    public function removeNPC($player, $npc, $id) {
+
+        if (empty($this->npcs)) {
+            $player->sendMessage("§4§l[ERROR]§r§c No NPCs stored!§r");
+            return;
+        }
+        if (!isset($this->npcs[$id])) {
+            $player->sendMessage("§4§l[ERROR]§r§c You must enter a valid NPC ID!§r");
+            return;
+        }
+
+        $packet = new RemoveEntityPacket();
+        $packet->eid = $npc["eid"];
+        foreach ($player->getLevel()->getPlayers() as $player) {
+            $player->dataPacket($packet);
+        }
+        $currentNPCs = $this->config->removeNpc($id);
+        $this->npcs = $currentNPCs;
+    }
+
 
     public function createNPC($player, $name) {
 
         $uuid = $this->guidv4(random_bytes(16));
         $eid = rand(0, 9999999);
-
+        $id = count($this->npcs);
+        $id = $id++;
         $data = array();
         $data["pos"] = array("x"=>$player->x,"y"=>$player->y,"z"=>$player->z,"pitch"=>$player->pitch,"yaw"=>$player->yaw);
         $data["uuid"] = $uuid;
         $data["eid"] = $eid;
         $data["name"] = $name;
+        $data["npc_id"] = $id;
         //$data["commands"] = array();
 
         $this->config->addNpc($data);

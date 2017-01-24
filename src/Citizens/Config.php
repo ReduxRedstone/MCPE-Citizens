@@ -33,9 +33,15 @@ class Config {
 		$json = fopen("./plugins/Citizens/npcs/_all.json", "wb");
 		fwrite($json, json_encode($currentNPCs));
 		fclose($json);
+		return $currentNPCs;
 	}
-	public function removeNpc($npc) {
-		
+	public function removeNpc($npcID) {
+		$currentNPCs = json_decode(file_get_contents("./plugins/Citizens/npcs/_all.json"), true);
+		unset($currentNPCs[$npcID]);
+		$json = fopen("./plugins/Citizens/npcs/_all.json", "wb");
+		fwrite($json, json_encode($currentNPCs));
+		fclose($json);
+		return $currentNPCs;
 	}
 	public function updateNpc($data) {
 		
